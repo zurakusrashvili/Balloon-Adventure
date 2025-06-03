@@ -263,6 +263,12 @@ export class Balloon {
                 });
             }
         } else if (wasInDanger && !isNowInDanger) {
+            const currentX = this.container.x;
+            const currentY = this.container.y;
+            
+            this.baseX = currentX - this.windOffset;
+            this.baseY = currentY;
+            
             gsap.to(this.container, {
                 duration: 0.3,
                 x: this.baseX + this.windOffset,
@@ -300,50 +306,67 @@ export class Balloon {
     }
     
     public pop(): void {
+        this.stopAllMovementAnimations();
+        
         this.balloon.clear();
         
-        const popParticleCount = 15;
+        const scale = this.container.scale.x;
+        const isMobile = this.app.screen.width <= 768;
+        const responsiveMultiplier = isMobile ? 1.5 : 1.0;
+        
+        const popParticleCount = isMobile ? 12 : 15;
+        const particleSize = Math.max(3, 4 * scale * responsiveMultiplier);
+        const spreadDistance = Math.max(150, 200 * scale * responsiveMultiplier);
+        const fallDistance = Math.max(200, 300 * scale * responsiveMultiplier);
+        
         for (let i = 0; i < popParticleCount; i++) {
             const particle = new PIXI.Graphics();
             particle.beginFill(0xFF6B6B);
-            particle.drawRect(0, 0, 4, 4);
+            particle.drawRect(0, 0, particleSize, particleSize);
             particle.endFill();
             
-            particle.x = (Math.random() - 0.5) * 20;
-            particle.y = (Math.random() - 0.5) * 20;
+            const initialSpread = 20 * scale;
+            particle.x = (Math.random() - 0.5) * initialSpread;
+            particle.y = (Math.random() - 0.5) * initialSpread;
             
             this.container.addChild(particle);
             
             gsap.to(particle, {
-                duration: 1.5,
-                x: particle.x + (Math.random() - 0.5) * 200,
-                y: particle.y + Math.random() * 100 + 50,
+                duration: isMobile ? 1.2 : 1.5,
+                x: particle.x + (Math.random() - 0.5) * spreadDistance,
+                y: particle.y + Math.random() * (fallDistance * 0.5) + (fallDistance * 0.5),
                 alpha: 0,
                 rotation: Math.random() * Math.PI * 2,
                 ease: "power2.out",
+                force3D: false,
                 onComplete: () => {
-                    this.container.removeChild(particle);
+                    if (this.container.children.includes(particle)) {
+                        this.container.removeChild(particle);
+                    }
                 }
             });
         }
         
+        const balloonScale = 40 * scale;
+        const crackScale = scale;
+        
         this.balloon.beginFill(0x000000, 0.3);
-        this.balloon.drawCircle(0, 0, 42);
+        this.balloon.drawCircle(0, 0, balloonScale * 1.05);
         this.balloon.endFill();
         
         this.balloon.beginFill(0x444444, 0.7);
-        this.balloon.drawCircle(0, 0, 38);
+        this.balloon.drawCircle(0, 0, balloonScale * 0.95);
         this.balloon.endFill();
         
         for (let i = 0; i < 8; i++) {
             const angle = (i / 8) * Math.PI * 2;
-            const length = 35 + Math.random() * 15;
-            const startX = Math.cos(angle) * 20;
-            const startY = Math.sin(angle) * 20;
+            const length = (35 + Math.random() * 15) * crackScale;
+            const startX = Math.cos(angle) * (20 * crackScale);
+            const startY = Math.sin(angle) * (20 * crackScale);
             const endX = Math.cos(angle) * length;
             const endY = Math.sin(angle) * length;
             
-            this.balloon.lineStyle(2 + Math.random() * 2, 0x333333, 0.8);
+            this.balloon.lineStyle((2 + Math.random() * 2) * crackScale, 0x333333, 0.8);
             this.balloon.moveTo(startX, startY);
             this.balloon.lineTo(endX, endY);
         }
@@ -351,14 +374,17 @@ export class Balloon {
         gsap.to(this.balloon, {
             duration: 2,
             alpha: 0.3,
-            ease: "power2.out"
+            ease: "power2.out",
+            force3D: false
         });
         
         gsap.to([this.basket, this.bunny, this.rope], {
-            duration: 3,
-            y: "+=300",
-            rotation: Math.random() * 0.5 - 0.25,
-            ease: "power2.in"
+            duration: isMobile ? 2.5 : 3,
+            y: `+=${fallDistance}`,
+            rotation: Math.random() * 0.3 - 0.15,
+            ease: "power2.in",
+            force3D: false,
+            overwrite: true
         });
     }
     
