@@ -527,6 +527,11 @@ export class BalloonGame {
     
     private restartGame(): void {
         this.gameOverScreen.hide();
+        
+        if (this.audioManager) {
+            this.audioManager.reset();
+        }
+        
         this.startGame();
     }
     
@@ -783,7 +788,15 @@ export class BalloonGame {
             const windProgress = Math.min((this.altitude - windStartAltitude) / (windFullAltitude - windStartAltitude), 1);
             const windVolume = windProgress * 0.3; 
 
-            this.audioManager.play(SoundType.WIND, { loop: true, volume: windVolume });
+            if (!this.audioManager.isPlaying(SoundType.WIND)) {
+                this.audioManager.play(SoundType.WIND, { loop: true, volume: windVolume });
+            } else {
+                this.audioManager.setVolume(SoundType.WIND, windVolume);
+            }
+        } else {
+            if (this.audioManager.isPlaying(SoundType.WIND)) {
+                this.audioManager.stop(SoundType.WIND);
+            }
         }
     }
     
