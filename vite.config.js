@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-  base: '/BalloonAdventure/',
+  base: '/Balloon-Adventure/',
   server: {
     port: 3000,
     open: true
