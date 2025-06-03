@@ -2,7 +2,6 @@ import { BalloonGame } from './game/core/BalloonGame.js';
 
 let game: BalloonGame | null = null;
 
-// Function to set body height to window inner height
 function setBodyHeight(): void {
     document.body.style.height = `${window.innerHeight}px`;
 }

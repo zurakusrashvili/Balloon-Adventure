@@ -7,6 +7,7 @@ import { ParticleSystem } from '../systems/ParticleSystem.js';
 import { StartScreen } from '../screens/StartScreen.js';
 import { GameOverScreen } from '../screens/GameOverScreen.js';
 import { ResponsiveManager, ScaleMode, GameDimensions } from '../../utils/ResponsiveManager.js';
+import { AudioManager, SoundType } from '../systems/AudioManager.js';
 
 export enum GameState {
     MENU,
@@ -25,6 +26,7 @@ export class BalloonGame {
     private particleSystem!: ParticleSystem;
     private startScreen!: StartScreen;
     private gameOverScreen!: GameOverScreen;
+    private audioManager!: AudioManager;
     
     private gameContainer!: PIXI.Container;
     private uiContainer!: PIXI.Container;
@@ -102,6 +104,7 @@ export class BalloonGame {
         
         this.setupContainers();
         this.setupScreens();
+        await this.setupAudio();
         
         
         this.showStartScreen();
@@ -283,6 +286,16 @@ export class BalloonGame {
         this.gameOverScreen.updateDimensions(this.CANVAS_WIDTH, this.CANVAS_HEIGHT);
         this.app.stage.addChild(this.gameOverScreen);
     }
+
+    private async setupAudio(): Promise<void> {
+        this.audioManager = new AudioManager();
+        try {
+            await this.audioManager.init();
+            console.log('Audio system initialized');
+        } catch (error) {
+            console.warn('Audio initialization failed:', error);
+        }
+    }
     
     private showStartScreen(): void {
         this.gameState = GameState.MENU;
@@ -297,6 +310,11 @@ export class BalloonGame {
         this.startScreen.hide();
         this.gameContainer.visible = true;
         this.uiContainer.visible = true;
+        
+        if (this.audioManager) {
+            this.audioManager.enableAudio();
+            this.audioManager.fadeIn(SoundType.AMBIENT_MUSIC, 2000, { loop: true, volume: 0.4 });
+        }
         
         if (!this.gameStarted) {
         this.setupGame();
@@ -680,6 +698,7 @@ export class BalloonGame {
         
         
         this.updateBackgroundColor();
+        this.updateAltitudeAudio();
     }
     
     private updateBackgroundColor(): void {
@@ -753,11 +772,27 @@ export class BalloonGame {
         
         return (r << 16) | (g << 8) | b;
     }
+
+    private updateAltitudeAudio(): void {
+        if (!this.audioManager) return;
+
+        const windStartAltitude = 1000;
+        const windFullAltitude = 2000;
+
+        if (this.altitude >= windStartAltitude) {
+            const windProgress = Math.min((this.altitude - windStartAltitude) / (windFullAltitude - windStartAltitude), 1);
+            const windVolume = windProgress * 0.3; 
+
+            this.audioManager.play(SoundType.WIND, { loop: true, volume: windVolume });
+        }
+    }
     
     private landBalloon(): void {
         this.gameState = GameState.LANDED;
         this.gameRunning = false;
         this.stopGameLoop(); 
+        
+
         
         this.balloon.stopAllMovementAnimations();
         
@@ -814,6 +849,10 @@ export class BalloonGame {
         const successScreenDelay = isMobile ? 2000 : 2500; 
         
         setTimeout(() => {
+            if (this.audioManager) {
+                this.audioManager.play(SoundType.SUCCESS, { volume: 0.9 });
+                this.audioManager.fadeOut(SoundType.AMBIENT_MUSIC, 1500);
+            }
             this.showSuccessScreen();
         }, successScreenDelay);
     }
@@ -822,6 +861,11 @@ export class BalloonGame {
         this.gameState = GameState.POPPED;
         this.gameRunning = false;
         this.stopGameLoop(); 
+        
+        if (this.audioManager) {
+            this.audioManager.play(SoundType.POP, { volume: 0.8 });
+            this.audioManager.fadeOut(SoundType.AMBIENT_MUSIC, 1000);
+        }
         
         
         this.particleSystem.createPopEffect(
@@ -836,6 +880,9 @@ export class BalloonGame {
         this.gameUI.hideLandButton();
         
         setTimeout(() => {
+            if (this.audioManager) {
+                this.audioManager.play(SoundType.GAME_OVER, { volume: 0.8 });
+            }
             this.showGameOverScreen();
         }, 1000);
     }
