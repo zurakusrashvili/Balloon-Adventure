@@ -215,6 +215,13 @@ export class BalloonGame {
             this.gameUI = new GameUI(this.CANVAS_WIDTH, this.CANVAS_HEIGHT);
             this.uiContainer.addChild(this.gameUI.container);
             this.gameUI.onLandButtonClick = () => this.landBalloon();
+            this.gameUI.onMuteToggle = () => this.toggleAudioMute();
+            
+            
+            if (this.audioManager) {
+                const settings = this.audioManager.getSettings();
+                this.gameUI.setMuteState(settings.muted);
+            }
             
             
             this.gameUI.updateScore(this.score);
@@ -358,6 +365,12 @@ export class BalloonGame {
         
         
         this.gameUI.onLandButtonClick = () => this.landBalloon();
+        this.gameUI.onMuteToggle = () => this.toggleAudioMute();
+        
+        if (this.audioManager) {
+            const settings = this.audioManager.getSettings();
+            this.gameUI.setMuteState(settings.muted);
+        }
         
         
         this.updateBalloonStartPosition(balloonScale);
@@ -914,6 +927,14 @@ export class BalloonGame {
         this.gameOverScreen.show(this.score, true); 
     }
     
+    public toggleAudioMute(): void {
+        if (this.audioManager) {
+            this.audioManager.toggleMute();
+            const settings = this.audioManager.getSettings();
+            this.gameUI.setMuteState(settings.muted);
+        }
+    }
+
     public restart(): void {
         this.restartGame();
     }

@@ -4,6 +4,7 @@ import { gsap } from 'gsap';
 export class GameUI {
     public container: PIXI.Container;
     public onLandButtonClick: (() => void) | null = null;
+    public onMuteToggle: (() => void) | null = null;
     
     private scoreText!: PIXI.Text;
     private altitudeText!: PIXI.Text;
@@ -12,6 +13,9 @@ export class GameUI {
     private landButton!: PIXI.Container;
     private landButtonText!: PIXI.Text;
     private gameOverContainer!: PIXI.Container;
+    private muteButton!: PIXI.Container;
+    private muteIcon!: PIXI.Text;
+    private isMuted: boolean = false;
     
     constructor(private canvasWidth: number, private canvasHeight: number) {
         this.container = new PIXI.Container();
@@ -19,6 +23,7 @@ export class GameUI {
         this.createScoreDisplay();
         this.createAltitudeDisplay();
         this.createRiskMeter();
+        this.createMuteButton();
         this.createLandButton();
         this.createGameOverScreen();
     }
@@ -91,6 +96,60 @@ export class GameUI {
         riskLabel.x = this.canvasWidth - 220;
         riskLabel.y = 45;
         this.container.addChild(riskLabel);
+    }
+
+    private createMuteButton(): void {
+        this.muteButton = new PIXI.Container();
+        
+        const buttonBg = new PIXI.Graphics();
+        buttonBg.beginFill(0x333333, 0.8);
+        buttonBg.drawCircle(0, 0, 20);
+        buttonBg.endFill();
+        buttonBg.lineStyle(2, 0xFFFFFF, 0.8);
+        buttonBg.drawCircle(0, 0, 20);
+        
+        this.muteIcon = new PIXI.Text('🔊', {
+            fontFamily: 'Arial',
+            fontSize: 16,
+            fill: 0xFFFFFF
+        });
+        this.muteIcon.anchor.set(0.5);
+        
+        this.muteButton.addChild(buttonBg);
+        this.muteButton.addChild(this.muteIcon);
+        
+        this.muteButton.x = this.canvasWidth - 50;
+        this.muteButton.y = 70;
+        
+        this.muteButton.interactive = true;
+        this.muteButton.cursor = 'pointer';
+        
+        this.muteButton.on('pointerover', () => {
+            buttonBg.tint = 0xCCCCCC;
+            gsap.to(this.muteButton.scale, {
+                duration: 0.1,
+                x: 1.1,
+                y: 1.1
+            });
+        });
+        
+        this.muteButton.on('pointerout', () => {
+            buttonBg.tint = 0xFFFFFF;
+            gsap.to(this.muteButton.scale, {
+                duration: 0.1,
+                x: 1,
+                y: 1
+            });
+        });
+        
+        this.muteButton.on('pointerup', () => {
+            this.toggleMute();
+            if (this.onMuteToggle) {
+                this.onMuteToggle();
+            }
+        });
+        
+        this.container.addChild(this.muteButton);
     }
     
     private createLandButton(): void {
@@ -401,6 +460,20 @@ export class GameUI {
             alpha: 1,
             ease: "power2.out"
         });
+    }
+
+    public toggleMute(): void {
+        this.isMuted = !this.isMuted;
+        this.updateMuteIcon();
+    }
+
+    public setMuteState(muted: boolean): void {
+        this.isMuted = muted;
+        this.updateMuteIcon();
+    }
+
+    private updateMuteIcon(): void {
+        this.muteIcon.text = this.isMuted ? '🔇' : '🔊';
     }
     
     public reset(): void {
