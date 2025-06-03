@@ -890,7 +890,7 @@ export class BalloonGame {
         this.ground.removeChildren();
         
         
-        const texture = PIXI.Texture.from('/assets/images/land.png');
+        const texture = PIXI.Texture.from('./assets/images/land.png');
         const landSprite = new PIXI.Sprite(texture);
         
         

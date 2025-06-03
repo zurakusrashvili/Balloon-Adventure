@@ -87,7 +87,7 @@ export class Cloud {
     
     private createCloud(): void {
         
-        const texture = PIXI.Texture.from('/assets/images/cloud.webp');
+        const texture = PIXI.Texture.from('./assets/images/cloud.webp');
         this.cloud = new PIXI.Sprite(texture);
         
         
