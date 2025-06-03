@@ -1,0 +1,22 @@
+{
+  "name": "balloon-adventure",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "vite --open",
+    "build": "vite build",
+    "preview": "vite preview --open",
+    "dev": "vite"
+  },
+  "keywords": ["game", "pixi", "balloon", "adventure"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "vite": "^5.1.1"
+  },
+  "dependencies": {
+    "pixi.js": "^7.4.0",
+    "gsap": "^3.12.2"
+  }
+} 
